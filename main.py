@@ -5,32 +5,48 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import threading
 import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def get_fuel_price():
+    # Define path for ChromeDriver
     service = Service(ChromeDriverManager().install())
+    # Create WebDriver object for Chrome
     driver = webdriver.Chrome(service=service)
 
     try:
+        # Load the website
         driver.get("https://fuelcalc.energydmz.org/")
-        # time.sleep(5)
 
+        # More robust waiting mechanism
         element_class_name = "subConsumerStationPrice"
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.CLASS_NAME, element_class_name))
+        )
         element = driver.find_element(By.CLASS_NAME, element_class_name)
 
-        # Return the price as float
-        return float(element.text.split()[0])
+        # Safely extract the price and return as float
+        price_text = element.text.split()[0]
+        return float(price_text)
 
+    except Exception as e:
+        print(f"Failed to get fuel price: {str(e)}")
+        return None  # Return None if there's an error
     finally:
+        # Close the browser
         driver.quit()
+
 
 def calculate_price(km, result_label):
     try:
         fuel_price = get_fuel_price()
+        if fuel_price is None:
+            raise ValueError("Fuel price could not be retrieved.")
         km_on_litre = 12  # Assuming 12 km per litre
         price = km / km_on_litre * fuel_price
-        result_label.set(f"Calculated cost: ${price:.2f}")
+        result_label.configure(text=f"Calculated cost: ILS{price:.2f}")  # Using configure to update the label
     except Exception as e:
-        result_label.set(f"Error: {str(e)}")
+        result_label.configure(text=f"Error: {str(e)}")  # Using configure to update the label on error
 
 def calculate_wrapper(km_entry, result_label):
     try:
