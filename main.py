@@ -37,25 +37,24 @@ def get_fuel_price():
         driver.quit()
 
 
-def calculate_price(km, result_label):
+def calculate_price(km, result_label, fuel_price):
     try:
-        fuel_price = get_fuel_price()
         if fuel_price is None:
             raise ValueError("Fuel price could not be retrieved.")
         km_on_litre = 12  # Assuming 12 km per litre
         price = km / km_on_litre * fuel_price
-        result_label.configure(text=f"Calculated cost: ILS{price:.2f}")  # Using configure to update the label
+        result_label.configure(text=f"Trip cost: ₪{price:.2f}")  # Using configure to update the label
     except Exception as e:
         result_label.configure(text=f"Error: {str(e)}")  # Using configure to update the label on error
 
-def calculate_wrapper(km_entry, result_label):
+def calculate_wrapper(km_entry, result_label, fuel_price):
     try:
         km = float(km_entry.get())
-        threading.Thread(target=calculate_price, args=(km, result_label)).start()
+        threading.Thread(target=calculate_price, args=(km, result_label, fuel_price)).start()
     except ValueError:
         result_label.set("Please enter a valid number for kilometers.")
 
-def create_gui():
+def create_gui(fuel_price):
     app = ctk.CTk()
     app.title("Fuel Cost Calculator")
 
@@ -67,10 +66,12 @@ def create_gui():
     result_label.pack(pady=(10, 20))
 
     calculate_btn = ctk.CTkButton(app, text="Calculate Fuel Cost",
-                                  command=lambda: calculate_wrapper(km_entry, result_label))
+                                  command=lambda: calculate_wrapper(km_entry, result_label, fuel_price))
     calculate_btn.pack(pady=(0, 20))
 
     app.mainloop()
 
+
+fuel_price = get_fuel_price()
 # Uncomment below line to run the GUI application
-create_gui()
+create_gui(fuel_price)
