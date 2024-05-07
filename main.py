@@ -36,5 +36,3 @@ def calculate_price(km):
     fuel_price = get_fuel_price()
     km_on_litre = 12
     print(km / km_on_litre * fuel_price)
-
-calculate_price(80)
