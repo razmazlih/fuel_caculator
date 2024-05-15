@@ -7,35 +7,21 @@ import threading
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import requests
 
-def get_fuel_price():
-    # Define path for ChromeDriver
-    service = Service(ChromeDriverManager().install())
-    # Create WebDriver object for Chrome
-    driver = webdriver.Chrome(service=service)
 
-    try:
-        # Load the website
-        driver.get("https://fuelcalc.energydmz.org/")
+def get_price_new():
+    url = "https://fuelcalc.energydmz.org/api/prices/getLatestPrice"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    }
 
-        # More robust waiting mechanism
-        element_class_name = "subConsumerStationPrice"
-        WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.CLASS_NAME, element_class_name))
-        )
-        element = driver.find_element(By.CLASS_NAME, element_class_name)
+    result = requests.get(url, headers=headers)
 
-        # Safely extract the price and return as float
-        price_text = element.text.split()[0]
-        return float(price_text)
+    result_dict = result.json()
 
-    except Exception as e:
-        print(f"Failed to get fuel price: {str(e)}")
-        return None  # Return None if there's an error
-    finally:
-        # Close the browser
-        driver.quit()
-
+    the_cost = result_dict[2]["PriceValue"]
+    return the_cost
 
 def calculate_price(km, result_label, fuel_price):
     try:
@@ -62,6 +48,9 @@ def create_gui(fuel_price):
     km_entry = ctk.CTkEntry(app, width=200)
     km_entry.pack(pady=(0, 20))
 
+    # car_type_entry = ctk.
+    
+
     result_label = ctk.CTkLabel(app, text="")
     result_label.pack(pady=(10, 20))
 
@@ -72,6 +61,7 @@ def create_gui(fuel_price):
     app.mainloop()
 
 
-fuel_price = get_fuel_price()
+fuel_price = get_price_new()
+
 # Uncomment below line to run the GUI application
 create_gui(fuel_price)
